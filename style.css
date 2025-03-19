@@ -6,7 +6,6 @@ body {
     font-size: 11px;
     padding: 10px; 
 }
-
 .chart-container {
     display: flex;
     flex-direction: column;
