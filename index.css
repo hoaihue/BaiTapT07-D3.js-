@@ -1,0 +1,33 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+    margin: 0;
+    font-size: 11px;
+    padding: 10px; 
+}
+
+.chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Căn lề phải cho các biểu đồ */
+    justify-content: center;
+    width: 100%;
+}
+
+.chart-box {
+    background: white;
+    padding: 10px; 
+    border-radius: 10px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    width: 350px; /* Đảm bảo chiều rộng đủ để biểu đồ nằm gọn */
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+svg {
+    display: block;
+    margin: auto;
+}
