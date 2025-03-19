@@ -4,13 +4,9 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
-
-    const margin = { top: 30, right: 50, bottom: 50, left: 120 }, // bottom:90
-        width = 450,// Giảm nhẹ kích thước biểu đồ
-        height = 200; // Giữ chiều cao hợp lý
-
-
-
+    const margin = { top: 30, right: 50, bottom: 50, left: 120 },
+        width = 450,
+        height = 200;
 
     const data1 = window.data.map(d => ({
         "Mã đơn hàng": d["Mã đơn hàng"],
@@ -21,10 +17,10 @@ document.addEventListener("DOMContentLoaded", function () {
         "Tháng tạo đơn": `Tháng ${new Date(d["Thời gian tạo đơn"]).getMonth() + 1}`
     }));
 
-
-    const tong_nhom = d3.rollup(data1, v => new Set(v.map(d => d["Mã đơn hàng"])).size, d => d["Nhóm hàng"]);
-    const df_grouped = d3.rollup(data1, v => new Set(v.map(d => d["Mã đơn hàng"])).size, d => d["Nhóm hàng"], d => d["Mặt hàng"]);
-
+    const tong_nhom = d3.rollup(data1, v => new Set(v.map(d => d["Mã đơn hàng"]))
+.size, d => d["Nhóm hàng"]);
+    const df_grouped = d3.rollup(data1, v => new Set(v.map(d => d["Mã đơn hàng"]))
+.size, d => d["Nhóm hàng"], d => d["Mặt hàng"]);
 
     const df_result = Array.from(df_grouped).flatMap(([group, items]) =>
         Array.from(items).map(([item, count]) => ({
@@ -36,38 +32,27 @@ document.addEventListener("DOMContentLoaded", function () {
         }))
     );
 
-
     df_result.sort((a, b) => b["Xác suất bán"] - a["Xác suất bán"]);
 
-
-    // Define the SVG container with dynamic width based on the number of charts per row
     const svg = d3.select("#Q9")
         .append("svg")
-        .attr("width", (width + margin.left + margin.right) * 3) // First row has 3 charts
-        .attr("height", (height + margin.top + margin.bottom) * 2); // Two rows
+        .attr("width", (width + margin.left + margin.right) * 3)
+        .attr("height", (height + margin.top + margin.bottom) * 2);
 
-
-    // Tạo container dạng grid để xếp mỗi hàng 3 biểu đồ
     const chartContainer = d3.select("#Q9")
         .style("display", "grid")
         .style("grid-template-columns", "repeat(3, 1fr)")
         .style("gap", "10px");
 
-
     const chart = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
-
 
     const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
     const groupedData = d3.groups(df_result, d => d["Nhóm hàng"]);
 
-
-    // Order groups as shown in the image
     const orderedGroups = ["[BOT] Bột", "[SET] Set trà", "[THO] Trà hoa", "[TMX] Trà mix", "[TTC] Trà củ, quả sấy"];
     const sortedGroupedData = orderedGroups.map(group => groupedData.find(g => g[0] === group)).filter(g => g);
 
-
-    // Create tooltip
     const tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0)
@@ -78,38 +63,28 @@ document.addEventListener("DOMContentLoaded", function () {
         .style("pointer-events", "none")
         .style("text-align", "left");
 
-
-    // Calculate spacing between charts
-    const groupSpacing = (width + margin.right); // Fixed spacing for each chart
-
+    const groupSpacing = (width + margin.right);
 
     sortedGroupedData.forEach(([group, data], index) => {
-        const row = Math.floor(index / 3); // First row: 0-2, Second row: 3-4
+        const row = Math.floor(index / 3);
         const col = index % 3;
 
-
-        // Adjust position for the second row to center the two charts
         let xOffset = col * groupSpacing;
-        if (row === 1) { // Second row
-            xOffset = (col % 2) * groupSpacing + (groupSpacing / 2); // Center the two charts
+        if (row === 1) {
+            xOffset = (col % 2) * groupSpacing + (groupSpacing / 2);
         }
-
 
         const groupChart = chart.append("g")
             .attr("transform", `translate(${xOffset},${row * (height + margin.bottom)})`);
 
-
         const x = d3.scaleLinear()
-            .domain([0, d3.max(data, d => d["Xác suất bán"]) * 1.1]) // Giới hạn chiều dài thanh
+            .domain([0, d3.max(data, d => d["Xác suất bán"]) * 1.1])
             .range([0, width - margin.left - margin.right]);
-       
-
 
         const y = d3.scaleBand()
             .domain(data.map(d => d["Mặt hàng"]))
             .range([0, height])
             .padding(0.3);
-
 
         const bars = groupChart.selectAll(".bar")
             .data(data)
@@ -139,38 +114,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 tooltip.transition()
                     .duration(500)
                     .style("opacity", 0);
-            })
-            .on("click", function (event, d) {
-                const isActive = d3.select(this).attr("opacity") === "0.3";
-                if (isActive) {
-                    bars.attr("opacity", 1);
-                } else {
-                    bars.attr("opacity", 0.3);
-                    d3.select(this).attr("opacity", 1);
-                }
             });
-
-
-        // Add labels to the bars
-        groupChart.selectAll(".label")
-            .data(data)
-            .enter()
-            .append("text")
-            .attr("class", "label")
-            .attr("x", d => x(d["Xác suất bán"]) - 5)
-            .attr("y", d => y(d["Mặt hàng"]) + y.bandwidth() / 2)
-            .attr("dy", ".35em")
-            .text(d => `${(d["Xác suất bán"] * 100).toFixed(1)}%`)
-            .style("font-size", "10px")
-            .style("fill", "white")
-            .style("text-anchor", "end");
-
 
         groupChart.append("g")
             .attr("transform", `translate(0,${height})`)
             .call(d3.axisBottom(x).tickFormat(d => `${(d * 100).toFixed(0)}%`).ticks(5))
             .style("font-size", "10px");
-
 
         groupChart.append("g")
             .call(d3.axisLeft(y))
@@ -178,16 +127,12 @@ document.addEventListener("DOMContentLoaded", function () {
             .style("font-size", "10px")
             .style("text-anchor", "end");
 
-
         groupChart.append("text")
-            .attr("x", width / 2 - margin.left) // Đặt ở giữa theo chiều ngang
-            .attr("y", -5) // Đặt lên trên một chút
-            .attr("text-anchor", "middle") // Căn giữa
+            .attr("x", width / 2 - margin.left)
+            .attr("y", -5)
+            .attr("text-anchor", "middle")
             .attr("font-size", "13px")
             .attr("font-weight", "bold")
             .text(group);
-
-
     });
 });
-

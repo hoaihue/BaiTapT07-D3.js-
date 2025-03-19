@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .attr("y", d => y(d["Số lượng KH"]))
         .attr("width", x.bandwidth())
         .attr("height", d => height - y(d["Số lượng KH"]))
-        .attr("fill", "steelblue") // Đặt màu mặc định cho tất cả các thanh
+        .attr("fill", "steelblue") 
         .on("mouseover", function (event, d) {
             tooltip.transition()
                 .duration(200)
